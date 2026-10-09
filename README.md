@@ -178,7 +178,7 @@ library(mclust)
 data(toy_hdsbm)
 
 # 2. Fit the model with 5 perturbed spectral restarts
-modello <- hdsbm_fit(
+model <- hdsbm_fit(
   Y     = toy_hdsbm$Y,
   k     = 3,
   nrep  = 5,
@@ -186,11 +186,11 @@ modello <- hdsbm_fit(
 )
 
 # 3. Print summary results (S3 method)
-print(modello)
+print(model)
 
 # 4. Evaluate clustering accuracy vs. ground truth
-ari_greedy  <- adjustedRandIndex(modello$best_fit$cl,  toy_hdsbm$U_true)
-ari_viterbi <- adjustedRandIndex(modello$best_fit$clv, toy_hdsbm$U_true)
+ari_greedy  <- adjustedRandIndex(model$best_fit$cl,  toy_hdsbm$U_true)
+ari_viterbi <- adjustedRandIndex(model$best_fit$clv, toy_hdsbm$U_true)
 
 cat(sprintf("Adjusted Rand Index (Pointwise Greedy): %.4f\n", ari_greedy))
 cat(sprintf("Adjusted Rand Index (Global Viterbi):   %.4f\n", ari_viterbi))
