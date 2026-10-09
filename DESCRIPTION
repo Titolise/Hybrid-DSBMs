@@ -20,3 +20,4 @@ LazyData: true
 Depends: 
     R (>= 3.5)
 Config/testthat/edition: 3
+URL: https://titolise.github.io/Hybrid-DSBMs/

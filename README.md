@@ -1,7 +1,8 @@
 # hdsbm: Hybrid Dynamic Stochastic Block Models
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![R-CMD-check](https://img.shields.io/badge/R--CMD--check-passing-brightgreen.svg)](https://github.com/gianfilippotito/hdsbm)
+[![R-CMD-check](https://img.shields.io/badge/R--CMD--check-passing-brightgreen.svg)](https://github.com/Titolise/Hybrid-DSBMs)
+[![Documentation](https://img.shields.io/badge/docs-pkgdown-blue.svg)](https://titolise.github.io/Hybrid-DSBMs/)
 [![R Version](https://img.shields.io/badge/R-%3E%3D%203.5-blue.svg)](https://www.r-project.org/)
 
 An R package providing fast estimation, simulation, and model selection routines for discrete-time **Dynamic Stochastic Block Models (DSBM)**. The package features an accelerated **Classification Expectation-Maximization (CEM)** algorithm, an asymmetric M-step, high-performance C++ subroutines powered by `Rcpp` and `Armadillo`, and an innovative **Perturbed SVD Multi-Start Initialization Strategy**.
@@ -16,10 +17,10 @@ Dynamic Stochastic Block Models extend static stochastic block models to tempora
 
 Let $\mathbf{Y} \in \{0, 1\}^{n \times n \times T}$ denote a binary temporal adjacency tensor observed over $n$ vertices across $T$ discrete observation horizons. Let $U_{i, t} \in \{1, \dots, k\}$ be the latent community membership of node $i$ at time $t$. 
 
-The model parameters are parameterized by $\boldsymbol{\theta} = (\boldsymbol{\pi}_0, \boldsymbol{\Pi}, \boldsymbol{\Psi})$:
+The model parameters are parameterised by $\boldsymbol{\theta} = (\boldsymbol{\pi}_0, \boldsymbol{\Pi}, \boldsymbol{\Psi})$:
 
-* **Initial class proportions**: $\boldsymbol{\pi}_0 \in \Delta^{k-1}$, where $\pi_{0, u} = \mathbb{P}(U_{i, 1} = u)$;
-* **First-order Markov transition matrix**: $\boldsymbol{\Pi} \in [0, 1]^{k \times k}$, where $\Pi_{u, v} = \mathbb{P}(U_{i, t} = v \mid U_{i, t-1} = u)$ and $\sum_{v=1}^k \Pi_{u, v} = 1$;
+* **Initial class proportions**: $\boldsymbol{\pi}_0 \in \Delta^{k-1}$, where $\pi_{0, u} = \mathbb{P}(U_{i, 1} = u)$.
+* **First-order Markov transition matrix**: $\boldsymbol{\Pi} \in [0, 1]^{k \times k}$, where $\Pi_{u, v} = \mathbb{P}(U_{i, t} = v \mid U_{i, t-1} = u)$ and $\sum_{v=1}^k \Pi_{u, v} = 1$.
 * **Dyadic connection probability matrix**: $\boldsymbol{\Psi} \in [0, 1]^{k \times k}$, where $\Psi_{u, v} = \mathbb{P}(Y_{i, j, t} = 1 \mid U_{i, t} = u, U_{j, t} = v)$.
 
 Due to the combinatorial explosion of latent trajectory paths and the multi-modal topography of the complete-data log-likelihood surface, standard local search heuristics frequently get trapped in sub-optimal local extrema. `hdsbm` addresses this problem by coupling a **Hybrid CEM algorithm** with a structured **Perturbed SVD Spectral Multi-Start** strategy.
@@ -45,7 +46,7 @@ A key contribution of the package is the **Perturbed SVD Multi-Start scheme**, c
           ┌─────────────────┴─────────────────┐
           ▼                                   ▼
     [Base Start]               [h = 1, ..., nrep Perturbations]
-     Tau ~ K-means             Perturbation intensity α ~ U(0.05, 0.35)
+     Tau ~ K-means             Perturbation intensity alpha ~ U(0.05, 0.35)
                                Stochastic class reassignment from cl_base
                                Column-wise normalization -> Taur
                                       │
@@ -108,12 +109,15 @@ hdsbm/
 ├── DESCRIPTION             # Package metadata, dependencies, and licensing
 ├── NAMESPACE               # Exported functions and C++ symbol registration
 ├── LICENSE / LICENSE.md    # MIT License terms
+├── _pkgdown.yml            # Documentation website configuration
 ├── .Rbuildignore           # Rules for packaging and build exclusion
 ├── .gitignore              # Git ignore configuration for Rcpp binaries and caches
 ├── data/
 │   └── toy_hdsbm.rda       # Built-in synthetic sample dataset
 ├── data-raw/
 │   └── toy_hdsbm.R         # Reproducible data-generation script
+├── inst/
+│   └── CITATION            # BibTeX and formal academic citation metadata
 ├── man/                    # Roxygen2 Rd documentation files
 ├── R/
 │   ├── best_perm.R         # Hungarian-style label alignment for ARI evaluation
@@ -122,11 +126,14 @@ hdsbm/
 │   ├── est_hyb_sbm_dyn_dec.R # CEM algorithm with forward-backward & Viterbi passes
 │   ├── hdsbm_fit.R         # Top-level API with SVD multi-start and S3 print methods
 │   ├── hdsbm-package.R     # Package-level documentation and Rcpp registration
-│   ├── icl_dyn_hyb.R       # Integrated Completed Likelihood calculation
+│   ├── icl_dyn_hyb.R       # Standalone ICL functions (icl, ICL, icl_dyn_hyb)
 │   └── RcppExports.R       # Automatically generated Rcpp wrappers
 ├── src/
 │   ├── Core_hyb.cpp        # High-performance C++ likelihood & greedy search functions
 │   └── RcppExports.cpp     # Compiled Rcpp registration routines
+├── tests/
+│   ├── testthat.R          # Testthat test runner
+│   └── testthat/           # Unit tests
 └── Simulation.R            # Benchmarking and Monte Carlo simulation script
 ```
 
@@ -151,14 +158,14 @@ You can install `hdsbm` directly from GitHub:
 install.packages("remotes")
 
 # Install hdsbm directly from GitHub:
-remotes::install_github("gianfilippotito/hdsbm")
+remotes::install_github("Titolise/Hybrid-DSBMs")
 ```
 
 Or clone the repository and build locally:
 
 ```bash
-git clone https://github.com/gianfilippotito/hdsbm.git
-cd hdsbm
+git clone https://github.com/Titolise/Hybrid-DSBMs.git
+cd Hybrid-DSBMs
 R CMD INSTALL .
 ```
 
@@ -194,6 +201,9 @@ ari_viterbi <- adjustedRandIndex(model$best_fit$clv, toy_hdsbm$U_true)
 
 cat(sprintf("Adjusted Rand Index (Pointwise Greedy): %.4f\n", ari_greedy))
 cat(sprintf("Adjusted Rand Index (Global Viterbi):   %.4f\n", ari_viterbi))
+
+# 5. Extract Model Selection Criterion (ICL)
+icl(model)
 ```
 
 ### 2. Simulating and Estimating a Dynamic Network
@@ -225,17 +235,38 @@ sim <- draw_sn_dyn(n = n, k = k, TT = TT, piv = piv0, Pi = Pi0, Psi = Psi0)
 
 # Estimate with SVD multi-start
 fit <- hdsbm_fit(
-  Y      = sim$Y,
-  k      = k,
-  nrep   = 10,
-  maxit  = 150,
-  seed   = 42,
+  Y       = sim$Y,
+  k       = k,
+  nrep    = 10,
+  maxit   = 150,
+  seed    = 42,
   verbose = TRUE
 )
 
 # Access estimated parameters
 print(fit)
-cat("Optimal ICL Score:", fit$icl$ICL, "\n")
+
+# Compute numeric ICL or inspect penalty decomposition
+icl(fit)
+icl(fit, detailed = TRUE)
+```
+
+### 3. Model Selection across different $k$
+
+```r
+# Fit models for candidate block counts k in 2:4
+k_candidates <- 2:4
+fits <- lapply(k_candidates, function(k_val) {
+  hdsbm_fit(toy_hdsbm$Y, k = k_val, nrep = 5, verbose = FALSE)
+})
+
+# Compare ICL scores (higher is better)
+scores <- sapply(fits, icl)
+names(scores) <- paste0("k=", k_candidates)
+print(scores)
+
+best_k <- k_candidates[which.max(scores)]
+cat(sprintf("Optimal number of communities selected by ICL: k = %d\n", best_k))
 ```
 
 ---
@@ -245,10 +276,11 @@ cat("Optimal ICL Score:", fit$icl$ICL, "\n")
 | Function | Description |
 | :--- | :--- |
 | `hdsbm_fit(Y, k, nrep, ...)` | **Main API function**. Runs the Hybrid CEM engine using the Perturbed SVD multi-start strategy and returns an S3 `hdsbm` object. |
+| `icl(object, detailed = FALSE, ...)` | Computes the Integrated Completed Likelihood (ICL) criterion (returns a scalar or detailed penalty list). Also aliased as `ICL()`. |
 | `draw_sn_dyn(n, k, TT, piv, Pi, Psi)` | Generates synthetic dynamic network tensors and true latent paths under the DSBM framework. |
-| `icl_dyn_hyb(out_pred, n, TT, k)` | Computes the Integrated Completed Likelihood (ICL) with dedicated network and Markov transition penalties. |
 | `best_perm(Utrue, Uprop)` | Finds the optimal permutation of class labels to match estimated clusters to ground truth. |
 | `est_pred_sbm_dyn_decoding(Y, k, ...)` | Low-level estimation routine executing the Hybrid CEM algorithm with Viterbi decoding. |
+| `icl_dyn_hyb(out_pred, ...)` | Legacy interface for computing the ICL with detailed breakdown. |
 
 ---
 
@@ -260,6 +292,30 @@ cat("Optimal ICL Score:", fit$icl$ICL, "\n")
   \text{ICL} = \ell_c(\hat{\boldsymbol{\theta}} \mid \mathbf{Y}, \hat{\mathbf{U}}) - \frac{k(k+1)}{4}\log\left(T \frac{n(n-1)}{2}\right) - \frac{k(k-1)}{2}\log\left(n(T-1)\right) - \frac{k-1}{2}\log(n)
   $$
   Penalizes connection probabilities, transition matrices, and initial distributions separately to guarantee consistent model selection.
+
+---
+
+## 🎓 Citation
+
+If you use `hdsbm` in your research, please cite it as:
+
+```r
+citation("hdsbm")
+```
+
+BibTeX format:
+
+```bibtex
+@mastersthesis{tito2026hdsbm,
+  title   = {Hybrid Dynamic Stochastic Block Models},
+  author  = {Gianfilippo Tito},
+  year    = {2026},
+  school  = {Universit{\`a} degli Studi di Perugia},
+  address = {Perugia, Italy},
+  note    = {R package version 0.1.0},
+  url     = {https://github.com/Titolise/Hybrid-DSBMs}
+}
+```
 
 ---
 

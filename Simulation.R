@@ -59,7 +59,7 @@ U_true <- sim_data$U + 1
 # 4. Model Estimation via Perturbed SVD Multi-Start
 # ------------------------------------------------------------------------------
 cat("[Estimation] Fitting H-DSBM with perturbed spectral restarts...\n")
-modello <- hdsbm_fit(
+model <- hdsbm_fit(
   Y      = sim_data$Y,
   k      = k,
   nrep   = nrep,
@@ -73,13 +73,13 @@ modello <- hdsbm_fit(
 # 5. Performance Evaluation
 # ------------------------------------------------------------------------------
 # Evaluate clustering agreement using Adjusted Rand Index (ARI)
-ari_greedy  <- mclust::adjustedRandIndex(modello$best_fit$cl,  U_true)
-ari_viterbi <- mclust::adjustedRandIndex(modello$best_fit$clv, U_true)
+ari_greedy  <- mclust::adjustedRandIndex(model$best_fit$cl,  U_true)
+ari_viterbi <- mclust::adjustedRandIndex(model$best_fit$clv, U_true)
 
 cat("\n====================================================\n")
 cat("                BENCHMARK RESULTS                   \n")
 cat("====================================================\n")
-print(modello)
+print(model)
 cat("----------------------------------------------------\n")
 cat(sprintf("ARI (Pointwise Greedy): %.4f\n", ari_greedy))
 cat(sprintf("ARI (Global Viterbi):   %.4f\n", ari_viterbi))

@@ -1,0 +1,30 @@
+url: https://titolise.github.io/Hybrid-DSBMs/
+
+template:
+  bootstrap: 5
+
+navbar:
+  structure:
+    left:  [intro, reference, articles, news]
+    right: [github]
+
+reference:
+  - title: "Model Estimation"
+    desc: "Primary routines for fitting H-DSBM models"
+    contents:
+      - hdsbm_fit
+      - est_pred_sbm_dyn_decoding
+
+  - title: "Model Selection"
+    desc: "Information criteria and clustering performance"
+    contents:
+      - icl
+      - ICL
+      - icl_dyn_hyb
+      - best_perm
+
+  - title: "Simulation & Datasets"
+    desc: "Synthetic dynamic graph generators and sample data"
+    contents:
+      - draw_sn_dyn
+      - toy_hdsbm
