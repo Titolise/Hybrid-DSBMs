@@ -45,7 +45,7 @@
 </h1></div>
 <p><a href="https://opensource.org/licenses/MIT" class="external-link"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a> <a href="https://github.com/Titolise/Hybrid-DSBMs" class="external-link"><img src="https://img.shields.io/badge/R--CMD--check-passing-brightgreen.svg" alt="R-CMD-check"></a> <a href="https://titolise.github.io/Hybrid-DSBMs/"><img src="https://img.shields.io/badge/docs-pkgdown-blue.svg" alt="Documentation"></a> <a href="https://www.r-project.org/" class="external-link"><img src="https://img.shields.io/badge/R-%3E%3D%203.5-blue.svg" alt="R Version"></a></p>
 <p>An R package providing fast estimation, simulation, and model selection routines for discrete-time <strong>Dynamic Stochastic Block Models (DSBM)</strong>. The package features an accelerated <strong>Classification Expectation-Maximization (CEM)</strong> algorithm, an asymmetric M-step, high-performance C++ subroutines powered by <code>Rcpp</code> and <code>Armadillo</code>, and an innovative <strong>Perturbed SVD Multi-Start Initialization Strategy</strong>.</p>
-<p>Developed as part of a Master’s Thesis in Statistics by <strong>Gianfilippo Tito</strong>.</p>
+<p>Developed as part of a Master’s Thesis in Statistics by <strong>Gianfilippo Tito</strong>, extending the hybrid estimation methodology of <strong>Marino &amp; Pandolfi (2022)</strong> to dynamic temporal graph architectures.</p>
 <hr>
 <div class="section level2">
 <h2 id="pushpin-theoretical-framework">📌 Theoretical Framework<a class="anchor" aria-label="anchor" href="#pushpin-theoretical-framework"></a>
@@ -61,8 +61,21 @@
 <li>
 <strong>Dyadic connection probability matrix</strong>: <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝚿</mi><mo>∈</mo><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><msup><mo stretchy="false" form="postfix">]</mo><mrow><mi>k</mi><mo>×</mo><mi>k</mi></mrow></msup></mrow><annotation encoding="application/x-tex">\boldsymbol{\Psi} \in [0, 1]^{k \times k}</annotation></semantics></math>, where <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Ψ</mi><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub><mo>=</mo><mi>ℙ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>Y</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>,</mo><mi>t</mi></mrow></msub><mo>=</mo><mn>1</mn><mo>∣</mo><msub><mi>U</mi><mrow><mi>i</mi><mo>,</mo><mi>t</mi></mrow></msub><mo>=</mo><mi>u</mi><mo>,</mo><msub><mi>U</mi><mrow><mi>j</mi><mo>,</mo><mi>t</mi></mrow></msub><mo>=</mo><mi>v</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Psi_{u, v} = \mathbb{P}(Y_{i, j, t} = 1 \mid U_{i, t} = u, U_{j, t} = v)</annotation></semantics></math>.</li>
 </ul>
-<p>Due to the combinatorial explosion of latent trajectory paths and the multi-modal topography of the complete-data log-likelihood surface, standard local search heuristics frequently get trapped in sub-optimal local extrema. <code>hdsbm</code> addresses this problem by coupling a <strong>Hybrid CEM algorithm</strong> with a structured <strong>Perturbed SVD Spectral Multi-Start</strong> strategy.</p>
+<div class="section level3">
+<h3 id="the-hybrid-inference-extension">The Hybrid Inference Extension<a class="anchor" aria-label="anchor" href="#the-hybrid-inference-extension"></a>
+</h3>
+<p>Due to the combinatorial explosion of latent trajectory paths and the multi-modal topography of the complete-data log-likelihood surface, standard local search heuristics frequently get trapped in sub-optimal local extrema.</p>
+<p><code>hdsbm</code> tackles this problem by generalizing the <strong>Hybrid Maximum Likelihood</strong> approach developed by <strong>Marino &amp; Pandolfi (2022)</strong> for static SBMs into a dynamic, time-varying paradigm:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Hybrid Classification EM</strong>: Combining continuous posterior probabilities (E-step) with discrete partition adjustments to preserve sharp community boundaries.</li>
+<li>
+<strong>Dynamic Greedy Reallocation Passes</strong>: Extending node-by-node greedy swaps across temporal slices, accelerated via C++ subroutines.</li>
+<li>
+<strong>Structured Multi-Start</strong>: Coupling deterministic spectral graph embeddings (Truncated SVD) with controlled stochastic perturbations to ensure global likelihood exploration.</li>
+</ol>
 <hr>
+</div>
 </div>
 <div class="section level2">
 <h2 id="microscope-perturbed-svd-multi-start-strategy">🔬 Perturbed SVD Multi-Start Strategy<a class="anchor" aria-label="anchor" href="#microscope-perturbed-svd-multi-start-strategy"></a>
@@ -82,7 +95,7 @@
           ┌─────────────────┴─────────────────┐
           ▼                                   ▼
     [Base Start]               [h = 1, ..., nrep Perturbations]
-     Tau ~ K-means             Perturbation intensity alpha ~ U(0.05, 0.35)
+     Tau ~ K-means             Perturbation intensity α ~ U(0.05, 0.35)
                                Stochastic class reassignment from cl_base
                                Column-wise normalization -&gt; Taur
                                       │
@@ -387,12 +400,15 @@
 <hr>
 </div>
 <div class="section level2">
-<h2 id="mortar_board-citation">🎓 Citation<a class="anchor" aria-label="anchor" href="#mortar_board-citation"></a>
+<h2 id="mortar_board-citation--references">🎓 Citation &amp; References<a class="anchor" aria-label="anchor" href="#mortar_board-citation--references"></a>
 </h2>
-<p>If you use <code>hdsbm</code> in your research, please cite it as:</p>
+<div class="section level3">
+<h3 id="how-to-cite-this-package">How to Cite this Package<a class="anchor" aria-label="anchor" href="#how-to-cite-this-package"></a>
+</h3>
+<p>To cite <code>hdsbm</code> in publications, please use:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"hdsbm"</span><span class="op">)</span></span></code></pre></div>
-<p>BibTeX format:</p>
+<p>BibTeX:</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode bibtex"><code class="sourceCode bibtex"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="va">@mastersthesis</span>{<span class="ot">tito2026hdsbm</span>,</span>
 <span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="dt">title</span>   = {Hybrid Dynamic Stochastic Block Models},</span>
 <span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="dt">author</span>  = {Gianfilippo Tito},</span>
@@ -402,7 +418,29 @@
 <span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>  <span class="dt">note</span>    = {R package version 0.1.0},</span>
 <span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>  <span class="dt">url</span>     = {https://github.com/Titolise/Hybrid-DSBMs}</span>
 <span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>}</span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="methodological-foundation">Methodological Foundation<a class="anchor" aria-label="anchor" href="#methodological-foundation"></a>
+</h3>
+<p>The hybrid inference framework implemented in this package builds upon and extends the hybrid maximum likelihood estimation strategy for static stochastic block models proposed by:</p>
+<ul>
+<li>
+<strong>Marino, M. F., &amp; Pandolfi, S. (2022)</strong>. <em>Hybrid maximum likelihood inference for stochastic block models</em>. <strong>Computational Statistics &amp; Data Analysis</strong>, 171, 107452. <a href="https://doi.org/10.1016/j.csda.2022.107452" class="external-link">https://doi.org/10.1016/j.csda.2022.107452</a>
+</li>
+</ul>
+<p>BibTeX:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bibtex"><code class="sourceCode bibtex"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="va">@article</span>{<span class="ot">marino2022hybrid</span>,</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  <span class="dt">title</span>     = {Hybrid maximum likelihood inference for stochastic block models},</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="dt">author</span>    = {Marino, Maria Francesca and Pandolfi, Silvia},</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="dt">journal</span>   = {Computational Statistics <span class="ch">\&amp;</span> Data Analysis},</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  <span class="dt">volume</span>    = {171},</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>  <span class="dt">pages</span>     = {107452},</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>  <span class="dt">year</span>      = {2022},</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>  <span class="dt">publisher</span> = {Elsevier},</span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>  <span class="dt">doi</span>       = {10.1016/j.csda.2022.107452}</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>}</span></code></pre></div>
 <hr>
+</div>
 </div>
 <div class="section level2">
 <h2 id="pencil-license--author">📝 License &amp; Author<a class="anchor" aria-label="anchor" href="#pencil-license--author"></a>
