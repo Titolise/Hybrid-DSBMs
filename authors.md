@@ -1,0 +1,21 @@
+# Authors and Citation
+
+## Authors
+
+- **Gianfilippo Tito**. Author, maintainer.
+
+## Citation
+
+Tito, G. (2026). Hybrid Dynamic Stochastic Block Models. Master's
+thesis, Università degli Studi di Perugia. R package version 0.1.0,
+https://github.com/Titolise/Hybrid-DSBMs.
+
+    @MastersThesis{,
+      title = {Hybrid Dynamic Stochastic Block Models},
+      author = {Gianfilippo Tito},
+      year = {2026},
+      school = {Università degli Studi di Perugia},
+      address = {Perugia, Italy},
+      note = {R package version 0.1.0},
+      url = {https://github.com/Titolise/Hybrid-DSBMs},
+    }
