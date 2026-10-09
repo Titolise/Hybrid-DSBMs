@@ -1,203 +1,86 @@
-rm(list = ls())
+# ==============================================================================
+# Simulation Benchmark: Hybrid Dynamic Stochastic Block Model (H-DSBM)
+# ==============================================================================
 
-require(mclust)
-require(gtools)
-require(Rcpp)
-require(RcppArmadillo)
+library(hdsbm)
+library(mclust)
 
-source("./src/est_hyb_sbm_dyn_dec.R")
-source("./src/draw_sn_dyn.R")
-source("./src/best_perm.R")
+# ------------------------------------------------------------------------------
+# 1. Experimental Configuration
+# ------------------------------------------------------------------------------
+mod     <- 1          # Scenario: 1 = Assortative (High intra), 2 = Disassortative (High inter)
+n       <- 20         # Number of vertices (nodes)
+k       <- 3          # Number of latent communities
+TT      <- 6          # Number of discrete time snapshots
+nrep    <- 15         # Number of perturbed SVD multi-start restarts
+persist <- "high"     # Markov chain persistence ("high" vs. "low")
+seed_sim <- 42        # Master seed for the simulation run
 
-# Compile and load the C++ code
-sourceCpp("./Cpp/Core_hyb.cpp")
+# ------------------------------------------------------------------------------
+# 2. Model Parameters Setup
+# ------------------------------------------------------------------------------
+# 2.1 Initial class distribution (uniform across latent blocks)
+piv0 <- rep(1 / k, k)
 
-# Simulation settings
-mod     = 1    
-persist = "high"   
-n       = 20       
-B       = 2       
-TT      = 6               
-k       = 3
-nrep    = 15
-maxit   = 5000
+# 2.2 First-order Markov transition matrix (Pi)
+# High persistence implies lower probability of transitioning between classes
+rho <- if (persist == "high") 0.1 else 0.3
 
-# Initial Probabilities
-piv0 = rep(1/k, k)
+# Vectorized Toeplitz-like construction based on community distance
+Pi0 <- rho^abs(outer(seq_len(k), seq_len(k), "-"))
+Pi0 <- sweep(Pi0, 1, rowSums(Pi0), "/")  # Row-normalize to valid stochastic matrix
 
-if (persist == "high") {
-  rho = 0.1
-} else {
-  rho = 0.3
-}
+# 2.3 Dyadic connection probability matrix (Psi)
+set.seed(6)  # Seed for reproducible ground-truth block parameters
 
-Pi0 = matrix(0, k, k)
-for (u in 1:k) {
-  for (v in 1:k) {
-    Pi0[u, v] = rho^abs(v - u)
-  }
-}
-Pi0 = diag(1 / rowSums(Pi0)) %*% Pi0
+intra_val <- if (mod == 1) 0.30 else 0.03
+inter_val <- if (mod == 1) 0.03 else 0.30
 
-# Model Selection
-if (mod == 1) {
-  set.seed(6) 
-  # High intra-groups / Low inter-groups
-  Psi0 = matrix(0.03, k, k)
-  grid = 0.3 * runif(k, 0.5, 1.5)
-  diag(Psi0) = grid
-} else if (mod == 2) {
-  set.seed(6)
-  # Low intra-groups / High inter-groups
-  Psi0 = matrix(0.3, k, k)
-  grid = 0.03 * runif(k, 0.5, 1.5)
-  diag(Psi0) = grid
-} 
+Psi0       <- matrix(inter_val, nrow = k, ncol = k)
+diag(Psi0) <- intra_val * runif(k, min = 0.5, max = 1.5)
 
-filename = sprintf(
-  ".Res_mod%g_n%g_k%g_T%g_rep%g_perist_%s.RData",
-  mod,
-  n,
-  k,
-  TT,
-  nrep,
-  persist
+# ------------------------------------------------------------------------------
+# 3. Dynamic Network Generation
+# ------------------------------------------------------------------------------
+cat("[Simulation] Generating temporal network under DSBM...\n")
+sim_data <- draw_sn_dyn(
+  n   = n,
+  k   = k,
+  TT  = TT,
+  piv = piv0,
+  Pi  = Pi0,
+  Psi = Psi0
 )
 
+# Extract ground-truth community trajectories (converted to 1-indexed)
+U_true <- sim_data$U + 1
 
-#---- Simulation ----
-ari_pred       = rep(0, B)
-ari_predv      = rep(0, B)
-sum_diag_pred  = rep(0, B)
-sum_diag_predv = rep(0, B)
+# ------------------------------------------------------------------------------
+# 4. Model Estimation via Perturbed SVD Multi-Start
+# ------------------------------------------------------------------------------
+cat("[Estimation] Fitting H-DSBM with perturbed spectral restarts...\n")
+modello <- hdsbm_fit(
+  Y      = sim_data$Y,
+  k      = k,
+  nrep   = nrep,
+  maxit  = 2000,
+  tol    = 1e-10,
+  verbose = TRUE,
+  seed   = seed_sim
+)
 
-out = list()
+# ------------------------------------------------------------------------------
+# 5. Performance Evaluation
+# ------------------------------------------------------------------------------
+# Evaluate clustering agreement using Adjusted Rand Index (ARI)
+ari_greedy  <- mclust::adjustedRandIndex(modello$best_fit$cl,  U_true)
+ari_viterbi <- mclust::adjustedRandIndex(modello$best_fit$clv, U_true)
 
-for (b in 1:B) {
-  try({
-    print("%%%")
-    cat(sprintf("\nIteration: %d / %d \n", b, B))
-    set.seed(b + 136532)
-    
-    res   = draw_sn_dyn(n, k, TT, piv0, Pi0, Psi0)
-    Y     = res$Y
-    Utrue = res$U + 1
-    
-    # Initialization via K-means across flattened slices
-    Tau = array(0, c(k, n, TT))
-    YY  = Y[,, 1]
-    for (t in 2:TT) {
-      YY = rbind(YY, Y[,, t])
-    }
-    
-    U = matrix(kmeans(YY, k, nstart = 100)$cl, n, TT)
-    for (t in 1:TT) {
-      for (i in 1:n) {
-        Tau[U[i, t], i, t] = 1
-      }
-    }
-    
-    # Diagonal set to NA for network adjacencies
-    YY = Y
-    for (t in 1:TT) {
-      diag(YY[,, t]) = NA
-    }
-    
-    out[[b]] = list()
-    out[[b]]$sim   = res
-    out[[b]]$Utrue = Utrue
-    
-    # Hybrid SBM - Initial Fit
-    print("Fitting Hybrid DSBM...")
-    pred = est_pred_sbm_dyn_decoding(
-      YY,
-      k,
-      start = 2,
-      tol   = 10^-10,
-      Tau   = Tau,
-      maxit = maxit
-    )
-    
-    ari_pred[b]  = adjustedRandIndex(pred$cl, Utrue)
-    ari_predv[b] = adjustedRandIndex(pred$clv, Utrue)
-    
-    tmp = best_perm(Utrue, pred$cl)
-    sum_diag_pred[b] = sum(diag(tmp$Tab1))
-    
-    tmp = best_perm(Utrue, pred$clv)
-    sum_diag_predv[b] = sum(diag(tmp$Tab1))
-    
-    out[[b]]$pred         = pred
-    out[[b]]$pred_lktrace = pred$lk
-    
-    # Random initializations via perturbation
-    if (nrep > 0) {
-      # Base clustering via spectral decomposition of mean adjacency
-      Y_mean = apply(YY, c(1, 2), mean, na.rm = TRUE)
-      Y_mean[is.na(Y_mean)] = 0
-      vecs    = svd(Y_mean)$u[, 1:k]
-      cl_base = kmeans(vecs, k, nstart = 50)$cluster
-      
-      for (h in 1:nrep) {
-        perturb_rate = runif(1, 0.05, 0.35)
-        Taur = array(0.01, c(k, n, TT))
-        
-        for (t in 1:TT) {
-          for (i in 1:n) {
-            assigned_class = cl_base[i]
-            if (runif(1) < perturb_rate) {
-              alt_class = setdiff(1:k, cl_base[i])
-              if (length(alt_class) > 0) {
-                assigned_class = sample(alt_class, 1)
-              }
-            }
-            Taur[assigned_class, i, t] = 0.98
-          }
-        }
-        
-        for (t in 1:TT) {
-          Taur[,, t] = sweep(Taur[,, t], 2, colSums(Taur[,, t]), "/")
-        }
-        
-        cat(sprintf(
-          "Random init %d/%d : Hybrid SBM (Perturb: %.0f%%)\n",
-          h, nrep, perturb_rate * 100
-        ))
-        
-        predh = est_pred_sbm_dyn_decoding(
-          YY,
-          k,
-          start = 2,
-          tol   = 10^-10,
-          Tau   = Taur,
-          maxit = maxit
-        )
-        
-        out[[b]]$pred_lktrace = c(out[[b]]$pred_lktrace, predh$lk)
-        out[[b]]$pred_arivtrace = c(
-          out[[b]]$pred_arivtrace,
-          adjustedRandIndex(predh$clv, Utrue)
-        )
-        out[[b]]$pred_aritrace = c(
-          out[[b]]$pred_aritrace,
-          adjustedRandIndex(predh$cl, Utrue)
-        )
-        
-        # Keep best fit based on log-likelihood
-        if (predh$lk > out[[b]]$pred$lk) {
-          out[[b]]$pred = predh
-          ari_pred[b]   = adjustedRandIndex(predh$cl, Utrue)
-          ari_predv[b]  = adjustedRandIndex(predh$clv, Utrue)
-          
-          tmp = best_perm(Utrue, predh$cl)
-          sum_diag_pred[b] = sum(diag(tmp$Tab1))
-          
-          tmp = best_perm(Utrue, predh$clv)
-          sum_diag_predv[b] = sum(diag(tmp$Tab1))
-        }
-      }
-    }
-  })
-}
-
-save.image(filename)
+cat("\n====================================================\n")
+cat("                BENCHMARK RESULTS                   \n")
+cat("====================================================\n")
+print(modello)
+cat("----------------------------------------------------\n")
+cat(sprintf("ARI (Pointwise Greedy): %.4f\n", ari_greedy))
+cat(sprintf("ARI (Global Viterbi):   %.4f\n", ari_viterbi))
+cat("====================================================\n")

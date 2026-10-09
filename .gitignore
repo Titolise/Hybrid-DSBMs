@@ -1,2 +1,47 @@
+# ==========================================
+# 1. C / C++ compiled files
+# ==========================================
+src/*.o
+src/*.so
+src/*.dll
+src/*.dylib
+src/*.d
+src/*.a
+
+# ==========================================
+# 2. R session files and temporary data
+# ==========================================
+.Rhistory
+.Rapp.history
+.RData
+.RDataTmp
+.Ruserdata
+.Renviron
+
+# ==========================================
+# 3. IDE local configuration files
+# ==========================================
+.Rproj.user/
+.vscode/
+.idea/
+
+# ==========================================
+# 4. R check and build files
+# ==========================================
+*.Rcheck/
+*.tar.gz
+
+# ==========================================
+# 5. Operating system files
+# ==========================================
 .DS_Store
 **/.DS_Store
+._*
+Thumbs.db
+ehthumbs.db
+
+# ==========================================
+# 6. Large simulation outputs
+# ==========================================
+*.RData
+.Res_*.RData

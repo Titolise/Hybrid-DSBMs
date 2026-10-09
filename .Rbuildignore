@@ -1,0 +1,10 @@
+^LICENSE\.md$
+^Simulation\.R$
+^\.Rhistory$
+^\.DS_Store$
+^.*\.DS_Store$
+^data-raw$
+^hdsbm\.Rproj$
+^\.Rproj\.user$
+^\.git$
+^\.github$

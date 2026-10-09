@@ -1,4 +1,10 @@
-require(gtools)
+#' Find the optimal permutation of latent classes
+#'
+#' @param Utrue Vector of true class labels.
+#' @param Uprop Vector of estimated labels.
+#' @return A list containing the contingency table and the optimal permutation.
+#' @importFrom gtools permutations
+#' @export
 
 best_perm <- function(Utrue, Uprop) {
   k <- max(Utrue)

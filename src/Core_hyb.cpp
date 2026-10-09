@@ -7,7 +7,7 @@ using namespace Rcpp;
 // Likelihood
 // [[Rcpp::export]]
 
-List complk_dyn_cpp_original(arma::cube Y, arma::vec piv, arma::mat Pi, arma::mat Psi, arma::umat Ub, int k, int n, int TT) {
+List complk_dyn_cpp(arma::cube Y, arma::vec piv, arma::mat Pi, arma::mat Psi, arma::umat Ub, int k, int n, int TT) {
   arma::cube Phi(n, k, TT);
   for(int t=0; t<TT; t++) {
     arma::uvec Ub_t = Ub.col(t);
