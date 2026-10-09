@@ -7,7 +7,7 @@
 
 An R package providing fast estimation, simulation, and model selection routines for discrete-time **Dynamic Stochastic Block Models (DSBM)**. The package features an accelerated **Classification Expectation-Maximization (CEM)** algorithm, an asymmetric M-step, high-performance C++ subroutines powered by `Rcpp` and `Armadillo`, and an innovative **Perturbed SVD Multi-Start Initialization Strategy**.
 
-Developed as part of a Master's Thesis in Statistics by **Gianfilippo Tito**.
+Developed as part of a Master's Thesis in Statistics by **Gianfilippo Tito**, extending the hybrid estimation methodology of **Marino & Pandolfi (2022)** to dynamic temporal graph architectures.
 
 ---
 
@@ -23,7 +23,15 @@ The model parameters are parameterised by $\boldsymbol{\theta} = (\boldsymbol{\p
 * **First-order Markov transition matrix**: $\boldsymbol{\Pi} \in [0, 1]^{k \times k}$, where $\Pi_{u, v} = \mathbb{P}(U_{i, t} = v \mid U_{i, t-1} = u)$ and $\sum_{v=1}^k \Pi_{u, v} = 1$.
 * **Dyadic connection probability matrix**: $\boldsymbol{\Psi} \in [0, 1]^{k \times k}$, where $\Psi_{u, v} = \mathbb{P}(Y_{i, j, t} = 1 \mid U_{i, t} = u, U_{j, t} = v)$.
 
-Due to the combinatorial explosion of latent trajectory paths and the multi-modal topography of the complete-data log-likelihood surface, standard local search heuristics frequently get trapped in sub-optimal local extrema. `hdsbm` addresses this problem by coupling a **Hybrid CEM algorithm** with a structured **Perturbed SVD Spectral Multi-Start** strategy.
+### The Hybrid Inference Extension
+
+Due to the combinatorial explosion of latent trajectory paths and the multi-modal topography of the complete-data log-likelihood surface, standard local search heuristics frequently get trapped in sub-optimal local extrema. 
+
+`hdsbm` tackles this problem by generalizing the **Hybrid Maximum Likelihood** approach developed by **Marino & Pandolfi (2022)** for static SBMs into a dynamic, time-varying paradigm:
+
+1. **Hybrid Classification EM**: Combining continuous posterior probabilities (E-step) with discrete partition adjustments to preserve sharp community boundaries.
+2. **Dynamic Greedy Reallocation Passes**: Extending node-by-node greedy swaps across temporal slices, accelerated via C++ subroutines.
+3. **Structured Multi-Start**: Coupling deterministic spectral graph embeddings (Truncated SVD) with controlled stochastic perturbations to ensure global likelihood exploration.
 
 ---
 
@@ -46,7 +54,7 @@ A key contribution of the package is the **Perturbed SVD Multi-Start scheme**, c
           ┌─────────────────┴─────────────────┐
           ▼                                   ▼
     [Base Start]               [h = 1, ..., nrep Perturbations]
-     Tau ~ K-means             Perturbation intensity alpha ~ U(0.05, 0.35)
+     Tau ~ K-means             Perturbation intensity α ~ U(0.05, 0.35)
                                Stochastic class reassignment from cl_base
                                Column-wise normalization -> Taur
                                       │
@@ -295,15 +303,17 @@ cat(sprintf("Optimal number of communities selected by ICL: k = %d\n", best_k))
 
 ---
 
-## 🎓 Citation
+## 🎓 Citation & References
 
-If you use `hdsbm` in your research, please cite it as:
+### How to Cite this Package
+
+To cite `hdsbm` in publications, please use:
 
 ```r
 citation("hdsbm")
 ```
 
-BibTeX format:
+BibTeX:
 
 ```bibtex
 @mastersthesis{tito2026hdsbm,
@@ -314,6 +324,27 @@ BibTeX format:
   address = {Perugia, Italy},
   note    = {R package version 0.1.0},
   url     = {https://github.com/Titolise/Hybrid-DSBMs}
+}
+```
+
+### Methodological Foundation
+
+The hybrid inference framework implemented in this package builds upon and extends the hybrid maximum likelihood estimation strategy for static stochastic block models proposed by:
+
+* **Marino, M. F., & Pandolfi, S. (2022)**. *Hybrid maximum likelihood inference for stochastic block models*. **Computational Statistics & Data Analysis**, 171, 107452. [https://doi.org/10.1016/j.csda.2022.107452](https://doi.org/10.1016/j.csda.2022.107452)
+
+BibTeX:
+
+```bibtex
+@article{marino2022hybrid,
+  title     = {Hybrid maximum likelihood inference for stochastic block models},
+  author    = {Marino, Maria Francesca and Pandolfi, Silvia},
+  journal   = {Computational Statistics \& Data Analysis},
+  volume    = {171},
+  pages     = {107452},
+  year      = {2022},
+  publisher = {Elsevier},
+  doi       = {10.1016/j.csda.2022.107452}
 }
 ```
 
